@@ -10,7 +10,6 @@ export default function Home() {
         apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
         components={components}
         tools={tools}
-        tamboUrl="http://localhost:4000"
       >
         <MessageThreadFull contextKey="tambo-template" />
       </TamboProvider>

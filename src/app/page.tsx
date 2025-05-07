@@ -1,4 +1,3 @@
-import { ApiKeyCheck } from "@/components/ApiKeyCheck";
 import Image from "next/image";
 
 const KeyFilesSection = () => (
@@ -32,19 +31,26 @@ const KeyFilesSection = () => (
       <li className="flex items-start gap-2">
         <span>📄</span>
         <span>
+          <code className="font-medium font-mono">/components/ui/form.tsx</code>{" "}
+          - A generative form component
+        </span>
+      </li>
+      <li className="flex items-start gap-2">
+        <span>📄</span>
+        <span>
           <code className="font-medium font-mono">
-            /components/ui/graph.tsx
+            /components/FeedbackForms.tsx
           </code>{" "}
-          - A generative graph component
+          - Dynamic feedback form component
         </span>
       </li>
       <li className="flex items-start gap-2">
         <span className="text-blue-500">📄</span>
         <span>
           <code className="font-medium font-mono">
-            services/population-stats.ts
+            /components/CancellationReasonForm.tsx
           </code>{" "}
-          - An example tool implementation
+          - Initial cancellation reason form
         </span>
       </li>
       <li className="flex items-start gap-2">
@@ -97,26 +103,23 @@ export default function Home() {
               className="mb-4"
             />
           </a>
-          <h1 className="text-4xl text-center">tambo-ai chat template</h1>
+          <h1 className="text-4xl text-center">
+            Tambo AI Conversational Form Template
+          </h1>
         </div>
 
         <div className="w-full space-y-8">
-          <div className="bg-white px-8 py-4">
-            <h2 className="text-xl font-semibold mb-4">Setup Checklist</h2>
-            <ApiKeyCheck>
-              <div className="flex gap-4 flex-wrap">
-                <a
-                  href="/chat"
-                  className="px-6 py-3 rounded-md font-medium shadow-sm transition-colors text-lg mt-4 bg-[#7FFFC3] hover:bg-[#72e6b0] text-gray-800"
-                >
-                  Go to Chat →
-                </a>
-              </div>
-            </ApiKeyCheck>
+          <div className="flex gap-4 flex-wrap">
+            <a
+              href="/chat"
+              className="px-6 py-3 rounded-md font-medium shadow-sm transition-colors text-lg mt-4 bg-[#7FFFC3] hover:bg-[#72e6b0] text-gray-800"
+            >
+              Go to Chat →
+            </a>
           </div>
-
-          <KeyFilesSection />
         </div>
+
+        <KeyFilesSection />
       </main>
     </div>
   );

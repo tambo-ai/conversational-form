@@ -3,15 +3,11 @@
 import React from "react";
 import { FormComponent, FormField } from "@/components/ui/form";
 import { useTamboComponentState, useTambo, useTamboThreadInput } from "@tambo-ai/react";
-import { z } from "zod";
 
-// Define the schema for the feedback state
-const feedbackStateSchema = z.object({
-  submitted: z.boolean().default(false),
-  formData: z.record(z.string()).default({})
-});
-
-type FeedbackState = z.infer<typeof feedbackStateSchema>;
+interface FeedbackState {
+  submitted: boolean;
+  formData: Record<string, string>;
+}
 
 // Predefined form configurations for each reason
 const tooExpensiveFields: FormField[] = [
@@ -161,7 +157,7 @@ export function FeedbackForm({ className, onSubmit, reason }: FeedbackFormProps)
   );
   
   // Use Tambo thread input for submission
-  const { value, setValue, submit, isPending, error } = useTamboThreadInput(contextKey);
+  const { setValue, submit, isPending, error } = useTamboThreadInput(contextKey);
   const [submitError, setSubmitError] = React.useState<string | null>(null);
 
   // Handle form submission with Tambo thread

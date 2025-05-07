@@ -1,7 +1,7 @@
 import { useTamboThreadInput } from "@tambo-ai/react";
 import { useState } from "react";
 
-export const WelcomeCard = () => {
+export const CancellationReasonForm = () => {
   const [selectedReason, setSelectedReason] = useState("");
   const { setValue } = useTamboThreadInput("tambo-template");
 
@@ -35,12 +35,12 @@ export const WelcomeCard = () => {
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 max-w-xl w-full mb-8">
-      <h2 className="text-xl font-bold mb-4">We're sorry to see you go</h2>
+      <h2 className="text-xl font-bold mb-4">We&apos;re sorry to see you go</h2>
       <p className="mb-4">
-        Please help us understand why you're cancelling so we can improve our product.
+        Please help us understand why you&apos;re cancelling so we can improve our product.
       </p>
       <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-        <p className="text-gray-600 text-sm mb-2">What's your primary reason for cancelling?</p>
+        <p className="text-gray-600 text-sm mb-2">What&apos;s your primary reason for cancelling?</p>
         <select 
           value={selectedReason}
           onChange={handleReasonSelect}

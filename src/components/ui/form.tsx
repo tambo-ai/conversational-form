@@ -5,7 +5,6 @@ import { useTambo, useTamboComponentState } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Loader2Icon } from "lucide-react";
 import * as React from "react";
-import { z } from "zod";
 
 const formVariants = cva("w-full rounded-lg transition-all duration-200", {
   variants: {
@@ -97,17 +96,12 @@ export interface FormField {
   sliderLabels?: string[];
 }
 
-// Define schemas for form state
-const formFieldValueSchema = z.record(z.string());
-
-const formStateSchema = z.object({
-  values: formFieldValueSchema,
-  openDropdowns: z.record(z.boolean()).default({}),
-  selectedValues: z.record(z.string()).default({}),
-  yesNoSelections: z.record(z.string()).default({})
-});
-
-export type FormState = z.infer<typeof formStateSchema>;
+export interface FormState {
+  values: Record<string, string>;
+  openDropdowns: Record<string, boolean>;
+  selectedValues: Record<string, string>;
+  yesNoSelections: Record<string, string>;
+}
 
 /**
  * Props for the Form component
@@ -586,13 +580,17 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                      disabled:opacity-50 disabled:pointer-events-none
                      font-medium transition-colors duration-200"
           >
-            {isGenerating && _tambo_displayMessage ? (
+            {isGenerating ? (
               <div className="flex items-center justify-center gap-2">
                 <Loader2Icon className="h-4 w-4 animate-spin" />
                 <span>{_tambo_statusMessage ?? "Updating form..."}</span>
               </div>
             ) : (
-              submitText
+              generationStage === "COMPLETE" && _tambo_displayMessage && _tambo_completionStatusMessage ? (
+                <span>{_tambo_completionStatusMessage}</span>
+              ) : (
+                submitText
+              )
             )}
           </button>
         </div>

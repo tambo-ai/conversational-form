@@ -22,7 +22,7 @@ import {
   useThreadContainerContext,
 } from "@/components/ui/thread-container";
 import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
-import { WelcomeCard } from "../welcome-card";
+import { CancellationReasonForm } from "@/components/CancellationReasonForm";
 import { useMergedRef } from "@/lib/thread-hooks"
 import { Suggestion, useTambo } from "@tambo-ai/react";
 import type { VariantProps } from "class-variance-authority";
@@ -85,7 +85,7 @@ export const MessageThreadFull = React.forwardRef<
         <ScrollableMessageContainer className="p-4">
           {(!thread || thread.messages.length === 0) && (
             <div className="w-full min-w-xl p-4">
-              <WelcomeCard />
+              <CancellationReasonForm />
             </div>
           )}
           <ThreadContent variant={variant}>
