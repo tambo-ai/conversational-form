@@ -98,7 +98,7 @@ export function useFeedbackForm({
   
   // Set up message submission hooks and local error state tracking
   const { setValue, submit, isPending, error } = useTamboThreadInput(contextKey);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<Error | null>(null);
   
   /**
    * Effect that handles navigation between questions based on external controls
@@ -214,11 +214,11 @@ export function useFeedbackForm({
       }
     } catch (err) {
       console.error("Failed to submit feedback:", err);
-      setSubmitError(
-        err instanceof Error
-          ? err.message
-          : "Failed to send feedback. Please try again."
-      );
+      if (err instanceof Error) {
+        setSubmitError(err);
+      } else {
+        setSubmitError(new Error(typeof err === 'string' ? err : "Failed to send feedback. Please try again."));
+      }
     }
   };
 

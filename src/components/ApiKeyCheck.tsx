@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 interface ApiKeyCheckProps {
   children: React.ReactNode;
@@ -31,12 +31,26 @@ const ApiKeyMissingAlert = () => (
 
 const CopyButton = ({ text }: { text: string }) => {
   const [showCopied, setShowCopied] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(text);
     setShowCopied(true);
-    setTimeout(() => setShowCopied(false), 2000);
+    // Clear any existing timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => setShowCopied(false), 2000);
   };
+
+  useEffect(() => {
+    // Cleanup function to clear the timeout when the component unmounts
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <button

@@ -447,7 +447,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
             <div key={field.id} className="space-y-2">
               <label
                 className="block text-sm font-medium text-primary"
-                htmlFor={field.id}
+                htmlFor={`${field.id}-range`}
               >
                 {field.label}
                 {field.required && <span className="text-red-500 ml-1">*</span>}
