@@ -490,13 +490,27 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                       <input
                         type="checkbox"
                         id={`${field.id}-${option}`}
-                        name={`${field.id}-${option}`}
-                        value="true"
+                        name={`${field.id}[]`}
+                        value={option}
                         className="h-4 w-4 text-primary border-border focus:ring-ring"
+                        onChange={(e) => {
+                          const checkboxes = document.querySelectorAll(`input[name="${field.id}[]"]:checked`);
+                          const values = Array.from(checkboxes).map(cb => (cb as HTMLInputElement).value);
+                          const hiddenInput = document.getElementById(`${field.id}-hidden`) as HTMLInputElement;
+                          if (hiddenInput) {
+                            hiddenInput.value = values.join(',');
+                          }
+                        }}
                       />
                       <span>{option}</span>
                     </label>
                   ))}
+                  <input 
+                    type="hidden" 
+                    id={`${field.id}-hidden`} 
+                    name={field.id} 
+                    value="" 
+                  />
                 </div>
               )}
 
@@ -504,8 +518,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                 <div className="space-y-3">
                   <input
                     type="range"
-                    id={field.id}
-                    name={field.id}
+                    id={`${field.id}-range`}
                     min="0"
                     max={field.sliderLabels && field.sliderLabels.length > 0 
                         ? (field.sliderLabels.length - 1).toString() 
@@ -517,6 +530,31 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                             : "5")}
                     required={field.required}
                     className="w-full slider-primary h-2 rounded-lg cursor-pointer"
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const label = field.sliderLabels && field.sliderLabels.length > 0 
+                        ? field.sliderLabels[parseInt(value)]
+                        : value;
+                      const hiddenInput = document.getElementById(field.id) as HTMLInputElement;
+                      if (hiddenInput) {
+                        hiddenInput.value = `${value} : ${label}`;
+                      }
+                    }}
+                  />
+                  <input
+                    type="hidden"
+                    id={field.id}
+                    name={field.id}
+                    defaultValue={(() => {
+                      const defaultVal = field.sliderDefault?.toString() ?? 
+                        (field.sliderLabels && field.sliderLabels.length > 0 
+                            ? Math.floor((field.sliderLabels.length - 1) / 2).toString() 
+                            : "5");
+                      const defaultLabel = field.sliderLabels && field.sliderLabels.length > 0 
+                        ? field.sliderLabels[parseInt(defaultVal)]
+                        : defaultVal;
+                      return `${defaultVal} : ${defaultLabel}`;
+                    })()}
                   />
                   {field.sliderLabels && field.sliderLabels.length > 0 ? (
                     <div className="flex justify-between text-xs text-muted-foreground">

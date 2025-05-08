@@ -7,6 +7,10 @@ import { useTamboComponentState, useTambo, useTamboThreadInput } from "@tambo-ai
 interface FeedbackState {
   submitted: boolean;
   formData: Record<string, string>;
+  currentQuestionIndex: number;
+  isComplete: boolean;
+  awaitingNextQuestion: boolean;
+  answeredQuestions: number[];
 }
 
 // Predefined form configurations for each reason
@@ -140,68 +144,57 @@ interface FeedbackFormProps {
   className?: string;
   onSubmit?: (reason: string, data: Record<string, string>) => void;
   reason: string;
+  showNextQuestion?: boolean;
+  currentQuestionIndex?: number;
+  statusMessage?: string;
 }
 
-export function FeedbackForm({ className, onSubmit, reason }: FeedbackFormProps) {
+export function FeedbackForm({ 
+  className, 
+  onSubmit, 
+  reason, 
+  showNextQuestion = false,
+  currentQuestionIndex: propQuestionIndex,
+  statusMessage
+}: FeedbackFormProps) {
   // Get the thread and contextKey from Tambo
   const { thread } = useTambo();
   const contextKey = thread?.contextKey || "tambo-template";
   
-  // Use Tambo component state - simpler now without reason management
+  // Enhanced state with answeredQuestions
   const [state, setState] = useTamboComponentState<FeedbackState>(
     `feedback-form-${reason}`,
     {
       submitted: false,
-      formData: {}
+      formData: {},
+      currentQuestionIndex: 0,
+      isComplete: false,
+      awaitingNextQuestion: false,
+      answeredQuestions: []
     }
   );
+  
+  // Update useEffect to handle both showNextQuestion and direct currentQuestionIndex control
+  React.useEffect(() => {
+    if (propQuestionIndex !== undefined && state && propQuestionIndex !== state.currentQuestionIndex) {
+      // If a specific question index is provided, use it
+      setState({
+        ...state,
+        currentQuestionIndex: propQuestionIndex,
+        awaitingNextQuestion: false
+      });
+    } else if (showNextQuestion && state?.awaitingNextQuestion) {
+      // Otherwise use the showNextQuestion prop
+      setState({
+        ...state,
+        awaitingNextQuestion: false
+      });
+    }
+  }, [showNextQuestion, propQuestionIndex, state, setState]);
   
   // Use Tambo thread input for submission
   const { setValue, submit, isPending, error } = useTamboThreadInput(contextKey);
   const [submitError, setSubmitError] = React.useState<string | null>(null);
-
-  // Handle form submission with Tambo thread
-  const handleFormSubmit = async (data: Record<string, string>) => {
-    try {
-      // Update local state
-      const updatedState = {
-        ...state,
-        formData: data
-      };
-      setState(updatedState as FeedbackState);
-      
-      // Prepare message for submission
-      const message = `Feedback submission: ${reason}\n${JSON.stringify(data, null, 2)}`;
-      setValue(message);
-      
-      // Submit to Tambo thread
-      await submit({
-        contextKey,
-        streamResponse: true,
-      });
-      
-      // Clear the input after successful submission
-      setValue("");
-      
-      // Mark as successfully submitted
-      setState({
-        ...updatedState,
-        submitted: true
-      });
-      
-      // Call the onSubmit callback if provided
-      if (onSubmit) {
-        onSubmit(reason, data);
-      }
-    } catch (err) {
-      console.error("Failed to submit feedback:", err);
-      setSubmitError(
-        err instanceof Error
-          ? err.message
-          : "Failed to send feedback. Please try again."
-      );
-    }
-  };
 
   // Get fields based on selected reason
   const getFieldsForReason = (reason: string): FormField[] => {
@@ -214,6 +207,91 @@ export function FeedbackForm({ className, onSubmit, reason }: FeedbackFormProps)
       case "poor-support": return poorSupportFields;
       case "hard-to-use": return hardToUseFields;
       default: return [];
+    }
+  };
+
+  const allFields = getFieldsForReason(reason);
+  
+  // Handle individual question submission
+  const handleQuestionSubmit = async (data: Record<string, string>) => {
+    try {
+      // Update form data with the new field data
+      const updatedFormData = {
+        ...state?.formData,
+        ...data
+      };
+      
+      const isLastQuestion = (state?.currentQuestionIndex || 0) >= allFields.length - 1;
+      const currentIndex = state?.currentQuestionIndex || 0;
+      
+      if (isLastQuestion) {
+        // For the last question, only submit the complete feedback
+        setState({
+          ...state,
+          formData: updatedFormData,
+          isComplete: true,
+          submitted: false,
+          currentQuestionIndex: currentIndex,
+          awaitingNextQuestion: false,
+          answeredQuestions: [...(state?.answeredQuestions || []), currentIndex]
+        });
+        
+        // Submit full feedback
+        const fullMessage = `Feedback submission: ${reason}\n${JSON.stringify(updatedFormData, null, 2)}`;
+        setValue(fullMessage);
+        await submit({
+          contextKey,
+          streamResponse: true,
+        });
+        setValue("");
+        
+        // Mark as successfully submitted
+        setState({
+          formData: updatedFormData,
+          isComplete: true,
+          submitted: true,
+          currentQuestionIndex: currentIndex,
+          awaitingNextQuestion: false,
+          answeredQuestions: [...(state?.answeredQuestions || []), currentIndex]
+        });
+        
+        if (onSubmit) {
+          onSubmit(reason, updatedFormData);
+        }
+      } else {
+        // For non-last questions, submit individual answer
+        // Prepare a message for this specific answer
+        const fieldId = Object.keys(data)[0];
+        const fieldValue = data[fieldId];
+        const currentField = allFields[currentIndex];
+        const message = `Feedback submission: "${currentField.label}": ${fieldValue}`;
+        
+        // Send the answer to the thread
+        setValue(message);
+        await submit({
+          contextKey,
+          streamResponse: true,
+        });
+        setValue("");
+        
+        // Update state for next question and mark this question as answered
+        setState({
+          ...state,
+          formData: updatedFormData,
+          awaitingNextQuestion: true,
+          currentQuestionIndex: currentIndex + 1,
+          submitted: false,
+          isComplete: false,
+          answeredQuestions: [...(state?.answeredQuestions || []), currentIndex]
+        });
+      }
+    } catch (err) {
+      console.error("Failed to submit feedback:", err);
+      setSubmitError(
+        err instanceof Error
+          ? err.message
+          : "Failed to send feedback. Please try again."
+      );
     }
   };
 
@@ -231,37 +309,45 @@ export function FeedbackForm({ className, onSubmit, reason }: FeedbackFormProps)
       </div>
     );
   }
-
-  // If the form has been submitted, show a summary of what was submitted
-  if (state.submitted) {
-    return (
-      <div className={className}>
-        <div className="p-4 rounded-lg bg-muted/50 border border-border mb-4">
-          <h3 className="text-lg font-medium mb-3">Your feedback summary:</h3>
-          <div className="space-y-2">
-            {Object.entries(state.formData).map(([key, value]) => (
-              <div key={key} className="flex flex-col">
-                <span className="text-sm font-medium">{key.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
-                <span className="text-sm text-muted-foreground">{value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Show the form based on the reason provided
+  
+  // Get the current question to display
+  const currentField = allFields[state.currentQuestionIndex];
+  const currentFieldArray = currentField ? [currentField] : [];
+  const isCurrentQuestionAnswered = state.answeredQuestions.includes(state.currentQuestionIndex);
+  
   return (
     <div className={className}>
-      <FormComponent
-        fields={getFieldsForReason(reason)}
-        onSubmit={handleFormSubmit}
-        variant="solid"
-        submitText={isPending ? "Submitting..." : "Submit Feedback"}
-        _tambo_displayMessage={isPending}
-        _tambo_statusMessage="Sending your feedback..."
-      />
+      {/* Render summaries of answered questions */}
+      {state.answeredQuestions.map((index) => {
+        const field = allFields[index];
+        const value = state.formData[field.id];
+        
+        return (
+          <div key={field.id} className="p-4 rounded-lg bg-muted/50 border border-border mb-4">
+            <div className="flex flex-col">
+              <span className="text-sm font-medium">{field.label}</span>
+              <span className="text-sm text-muted-foreground">{value}</span>
+            </div>
+          </div>
+        );
+      })}
+      
+      {/* Only show the current question form if it hasn't been answered */}
+      {!isCurrentQuestionAnswered && (
+        <>
+          <FormComponent
+            fields={currentFieldArray}
+            onSubmit={handleQuestionSubmit}
+            variant="solid"
+            submitText={isPending ? "Submitting..." : "Submit"}
+            _tambo_displayMessage={isPending}
+            _tambo_statusMessage={statusMessage}
+          />
+          <div className="mt-3 text-xs text-muted-foreground">
+            Question {state.currentQuestionIndex + 1} of {allFields.length} • You can also type your response in the chat
+          </div>
+        </>
+      )}
     </div>
   );
 } 
