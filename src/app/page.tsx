@@ -1,3 +1,4 @@
+import { ApiKeyCheck } from "@/components/ApiKeyCheck";
 import Image from "next/image";
 
 const KeyFilesSection = () => (
@@ -109,17 +110,22 @@ export default function Home() {
         </div>
 
         <div className="w-full space-y-8">
-          <div className="flex gap-4 flex-wrap">
-            <a
-              href="/chat"
-              className="px-6 py-3 rounded-md font-medium shadow-sm transition-colors text-lg mt-4 bg-[#7FFFC3] hover:bg-[#72e6b0] text-gray-800"
-            >
-              Go to Chat →
-            </a>
+          <div className="bg-white px-8 py-4">
+            <h2 className="text-xl font-semibold mb-4">Setup Checklist</h2>
+            <ApiKeyCheck>
+              <div className="flex gap-4 flex-wrap">
+                <a
+                  href="/chat"
+                  className="px-6 py-3 rounded-md font-medium shadow-sm transition-colors text-lg mt-4 bg-[#7FFFC3] hover:bg-[#72e6b0] text-gray-800"
+                >
+                  Go to Chat →
+                </a>
+              </div>
+            </ApiKeyCheck>
           </div>
-        </div>
 
-        <KeyFilesSection />
+          <KeyFilesSection />
+        </div>
       </main>
     </div>
   );

@@ -1,15 +1,37 @@
 import { useTamboThreadInput } from "@tambo-ai/react";
 import { useState } from "react";
 
+/**
+ * Form component that allows users to select a reason for cancellation
+ * and submit it to the Tambo thread. On submission, it sends an elaborated
+ * message based on the selected reason.
+ * 
+ * @component
+ * @returns {React.ReactNode} A form with a dropdown for cancellation reasons
+ * 
+ * @example
+ * <CancellationReasonForm />
+ */
 export const CancellationReasonForm = () => {
   const [selectedReason, setSelectedReason] = useState("");
   const { setValue } = useTamboThreadInput("tambo-template");
 
+  /**
+   * Handles the selection of a cancellation reason from the dropdown
+   * 
+   * @param {React.ChangeEvent<HTMLSelectElement>} e - The change event from the select element
+   */
   const handleReasonSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const reason = e.target.value;
     setSelectedReason(reason);
   };
 
+  /**
+   * Predefined elaboration messages for each cancellation reason
+   * These provide more context when submitted to the Tambo thread
+   * 
+   * @type {Record<string, string>}
+   */
   const elaborations: Record<string, string> = {
     "Too expensive": "I'm cancelling because the product is too expensive for my budget.",
     "Missing features": "I'm cancelling because the product is missing critical features I need.",
@@ -21,10 +43,19 @@ export const CancellationReasonForm = () => {
     "Other": "I'm cancelling for another reason."
   };
 
+  /**
+   * Retrieves the elaborated message for a given cancellation reason
+   * 
+   * @param {string} reason - The selected cancellation reason
+   * @returns {string} The elaborated message for the selected reason
+   */
   const getElaboratedReason = (reason: string): string => {
     return elaborations[reason] || reason;
   };
 
+  /**
+   * Handles the form submission by sending the elaborated message to the Tambo thread
+   */
   const handleSubmit = () => {
     if (selectedReason) {
       // Trigger the next step with elaborated message

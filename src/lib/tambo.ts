@@ -52,7 +52,10 @@ export const components: TamboComponent[] = [
         "no-longer-needed", 
         "poor-support", 
         "hard-to-use"
-      ]).optional().describe("The reason for cancellation, can be provided directly or extracted from chat")
+      ]).optional().describe("The reason for cancellation, can be provided directly or extracted from chat"),
+      showNextQuestion: z.boolean().optional().describe("When set to true, shows the next question in the sequence instead of the response summary"),
+      currentQuestionIndex: z.number().optional().describe("Directly sets which question to display (0-based index)"),
+      statusMessage: z.string().optional().describe("Status message to display while submitting the response")
     }),
   },
   // Add more components here
