@@ -24,6 +24,7 @@ import {
   YesNoField,
   yesNoFieldSchema,
 } from "@/components/ui/form/yes-no-field";
+import { getSummarySchema, sendMessage } from "@/lib/summaries";
 import type { TamboComponent } from "@tambo-ai/react";
 import { TamboTool } from "@tambo-ai/react";
 
@@ -36,6 +37,21 @@ import { TamboTool } from "@tambo-ai/react";
  */
 
 export const tools: TamboTool[] = [
+  {
+    name: "CancelationAgentTool",
+    description:
+      "This tool is used to get the next action from the cancelation agent. Always call this tool with the users latest message and the state of previous component (if any).",
+    tool: async ({
+      previousComponentState,
+      message,
+    }: {
+      previousComponentState: string;
+      message: string;
+    }) => {
+      return sendMessage(previousComponentState, message);
+    },
+    toolSchema: getSummarySchema,
+  },
   // Add tools here
 ];
 
