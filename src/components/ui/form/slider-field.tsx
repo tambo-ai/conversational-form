@@ -1,12 +1,11 @@
+import { isActiveThreadComponent } from "@/lib/thread-hooks";
 import { useTamboComponentState, useTamboThread } from "@tambo-ai/react";
 import { useEffect, useRef } from "react";
 import { z } from "zod";
-import { Label } from "../label";
 import { Slider } from "../slider";
 
 export const sliderFieldSchema = z.object({
   id: z.string(),
-  label: z.string(),
   min: z.number().default(0),
   max: z.number().default(100),
   step: z.number().default(1),
@@ -19,7 +18,6 @@ type SliderFieldState = { value: number };
 
 export function SliderField({
   id,
-  label,
   min,
   max,
   step,
@@ -33,7 +31,7 @@ export function SliderField({
     }
   );
 
-  const { setInputValue } = useTamboThread();
+  const { setInputValue, thread, generationStage } = useTamboThread();
 
   // Keep track of the last props update to prevent loops
   const lastPropsUpdate = useRef(JSON.stringify(value));
@@ -49,10 +47,12 @@ export function SliderField({
 
   const currentValue = state?.value ?? value;
 
+  // Check if this component is active in the current thread
+  const isActiveComponent = isActiveThreadComponent(thread, generationStage);
+
   return (
-    <div className="space-y-2">
+    <div className={`space-y-2 ${!isActiveComponent ? "opacity-60" : ""}`}>
       <div className="flex items-center justify-between">
-        <Label htmlFor={id}>{label}</Label>
         {showValue && (
           <span className="text-sm text-muted-foreground">{currentValue}</span>
         )}
@@ -63,9 +63,12 @@ export function SliderField({
         max={max}
         step={step}
         value={[currentValue]}
+        disabled={!isActiveComponent}
         onValueChange={([value]) => {
-          setState({ value });
-          setInputValue(`I've made my selection.`);
+          if (isActiveComponent) {
+            setState({ value });
+            setInputValue(`I've made my selection.`);
+          }
         }}
       />
       <div className="flex justify-between">

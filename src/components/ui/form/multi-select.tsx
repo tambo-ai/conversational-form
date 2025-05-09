@@ -1,5 +1,6 @@
 "use client";
 
+import { isActiveThreadComponent } from "@/lib/thread-hooks";
 import { useTamboComponentState, useTamboThread } from "@tambo-ai/react";
 import { useEffect, useRef } from "react";
 import { z } from "zod";
@@ -8,7 +9,6 @@ import { Label } from "../label";
 
 export const multiSelectSchema = z.object({
   id: z.string(),
-  title: z.string(),
   items: z
     .array(
       z.object({
@@ -27,7 +27,6 @@ type MultiSelectState = {
 export function MultiSelect({
   id,
   items: initialItems = [],
-  title,
 }: MultiSelectProps) {
   const [state, setState] = useTamboComponentState<MultiSelectState>(
     `multi-select-${id}`,
@@ -36,7 +35,7 @@ export function MultiSelect({
     }
   );
 
-  const { setInputValue } = useTamboThread();
+  const { setInputValue, thread, generationStage } = useTamboThread();
 
   // Keep track of the last props update to prevent loops
   const lastPropsUpdate = useRef(JSON.stringify(initialItems));
@@ -53,17 +52,20 @@ export function MultiSelect({
   // Use nullish coalescing for safer fallback
   const items = state?.items ?? initialItems;
 
+  // Check if this component is active in the current thread
+  const isActiveComponent = isActiveThreadComponent(thread, generationStage);
+
   return (
-    <div className="space-y-2">
-      {title && <Label>{title}</Label>}
+    <div className={`space-y-2 ${!isActiveComponent ? "opacity-60" : ""}`}>
       <div className="space-y-2">
         {items.map((item, index) => (
           <div key={index} className="flex items-center space-x-2">
             <Checkbox
               id={`${id}-${index}`}
               checked={Boolean(item.checked)}
+              disabled={!isActiveComponent}
               onCheckedChange={(checked: boolean | "indeterminate") => {
-                if (typeof checked === "boolean") {
+                if (typeof checked === "boolean" && isActiveComponent) {
                   const newItems = [...items];
                   newItems[index] = { ...item, checked };
                   setState({ items: newItems });
