@@ -35,7 +35,7 @@ Available components for questions:
   - MultiSelectField: "What aspects work better for you there?" (Options: Better accuracy, Faster responses, More features, Better pricing, Easier to use, Better support)
   - RegularMessage: "Would you like us to let you know when we improve in these areas? If so, what's your email?"
 - No Longer Needed
-  - SliderField: "How often were you using our product?" (Min 0, Max 7, Step 1, Labels: Never, Weekly, Daily)
+  - SingleSelectField: "How often were you using our product?" (Options: Never, Weekly, Daily)
   - MultiSelectField: "I understand your needs have changed." (Options: Project completed, Team restructured, Budget changes, Different approach needed, Business priorities shifted)
   - YesNoField: "Would you consider coming back in the future?"
 - Support Experience
@@ -55,7 +55,7 @@ Response format:
     "type": "question" | "farewell",
     "content": "The question text or thank you message",
     "component": "ComponentName" | null,
-    "defaultResponses": ["response 1", "response 2"] | null
+    "configValues": "yes or no or min, max, step, value etc." | null
   }
 }`;
 
@@ -109,22 +109,7 @@ export async function POST(request: Request) {
     storage.saveSummary(parsedResponse.newSummary);
 
     // Format response
-    const response: ApiResponse = {
-      success: true,
-      summary: storage.getSummary(),
-      response: {
-        type: parsedResponse.response.type,
-        content: parsedResponse.response.content,
-        component: parsedResponse.response.component,
-        defaultResponses: Array.isArray(
-          parsedResponse.response.defaultResponses
-        )
-          ? parsedResponse.response.defaultResponses
-          : parsedResponse.response.defaultResponses
-              ?.split(",")
-              .map((r: string) => r.trim()) || null,
-      },
-    };
+    const response: ApiResponse = parsedResponse;
 
     // Log the formatted response being sent to the client
     console.log("Sending response:", response);

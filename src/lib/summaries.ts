@@ -4,12 +4,11 @@ export const messageResponseSchema = z.object({
   type: z.enum(["question", "farewell"]),
   content: z.string(),
   component: z.string().nullable(),
-  defaultResponses: z.array(z.string()).nullable(),
+  configValues: z.string().nullable(),
 });
 
 export const apiResponseSchema = z.object({
-  success: z.boolean(),
-  summary: z.string(),
+  newSummary: z.string(),
   response: messageResponseSchema,
 });
 
