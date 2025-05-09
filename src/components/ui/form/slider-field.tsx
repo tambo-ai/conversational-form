@@ -1,4 +1,5 @@
-import { useTamboComponentState } from "@tambo-ai/react";
+import { useTamboComponentState, useTamboThread } from "@tambo-ai/react";
+import { useEffect, useRef } from "react";
 import { z } from "zod";
 import { Label } from "../label";
 import { Slider } from "../slider";
@@ -32,6 +33,20 @@ export function SliderField({
     }
   );
 
+  const { setInputValue } = useTamboThread();
+
+  // Keep track of the last props update to prevent loops
+  const lastPropsUpdate = useRef(JSON.stringify(value));
+
+  // Update state when props change
+  useEffect(() => {
+    const currentPropsString = JSON.stringify(value);
+    if (currentPropsString !== lastPropsUpdate.current) {
+      lastPropsUpdate.current = currentPropsString;
+      setState({ value });
+    }
+  }, [value, setState]);
+
   const currentValue = state?.value ?? value;
 
   return (
@@ -48,7 +63,10 @@ export function SliderField({
         max={max}
         step={step}
         value={[currentValue]}
-        onValueChange={([value]) => setState({ value })}
+        onValueChange={([value]) => {
+          setState({ value });
+          setInputValue(`I've made my selection.`);
+        }}
       />
       <div className="flex justify-between">
         <span className="text-sm text-muted-foreground">{min}</span>
