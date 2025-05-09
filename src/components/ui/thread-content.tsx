@@ -42,7 +42,7 @@ const useThreadContentContext = () => {
   const context = React.useContext(ThreadContentContext);
   if (!context) {
     throw new Error(
-      "ThreadContent sub-components must be used within a ThreadContent",
+      "ThreadContent sub-components must be used within a ThreadContent"
     );
   }
   return context;
@@ -83,7 +83,7 @@ const ThreadContent = React.forwardRef<HTMLDivElement, ThreadContentProps>(
         generationStage,
         variant,
       }),
-      [thread?.messages, isGenerating, generationStage, variant],
+      [thread?.messages, isGenerating, generationStage, variant]
     );
 
     return (
@@ -98,7 +98,7 @@ const ThreadContent = React.forwardRef<HTMLDivElement, ThreadContentProps>(
         </div>
       </ThreadContentContext.Provider>
     );
-  },
+  }
 );
 ThreadContent.displayName = "ThreadContent";
 
@@ -139,11 +139,13 @@ const ThreadContentMessages = React.forwardRef<
           <div
             key={
               message.id ??
-              `${message.role}-${message.createdAt ?? Date.now()}-${message.content?.toString().substring(0, 10)}`
+              `${message.role}-${
+                message.createdAt ?? Date.now()
+              }-${message.content?.toString().substring(0, 10)}`
             }
             className={cn(
               !isGenerating && "animate-in fade-in-0 slide-in-from-bottom-2",
-              "duration-200 ease-out",
+              "duration-200 ease-out"
             )}
             style={
               !isGenerating ? { animationDelay: `${index * 40}ms` } : undefined
@@ -170,7 +172,9 @@ const ThreadContentMessages = React.forwardRef<
                   }
                 />
                 {/* Rendered component area determines if the message is a canvas message */}
-                <MessageRenderedComponentArea />
+                <div className="pl-2">
+                  <MessageRenderedComponentArea />
+                </div>
               </div>
             </Message>
           </div>

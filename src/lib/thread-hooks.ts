@@ -1,6 +1,6 @@
+import type { TamboThread, TamboThreadMessage } from "@tambo-ai/react";
 import * as React from "react";
 import { useEffect, useState } from "react";
-import type { TamboThreadMessage } from "@tambo-ai/react";
 
 /**
  * Custom hook to merge multiple refs into one callback ref
@@ -21,7 +21,7 @@ export function useMergedRef<T>(...refs: React.Ref<T>[]) {
         }
       }
     },
-    [refs],
+    [refs]
   );
 }
 
@@ -31,7 +31,7 @@ export function useMergedRef<T>(...refs: React.Ref<T>[]) {
  * @returns Object containing hasCanvasSpace and canvasIsOnLeft
  */
 export function useCanvasDetection(
-  elementRef: React.RefObject<HTMLElement | null>,
+  elementRef: React.RefObject<HTMLElement | null>
 ) {
   const [hasCanvasSpace, setHasCanvasSpace] = useState(false);
   const [canvasIsOnLeft, setCanvasIsOnLeft] = useState(false);
@@ -83,7 +83,7 @@ export function hasRightClass(className?: string): boolean {
 export function usePositioning(
   className?: string,
   canvasIsOnLeft = false,
-  hasCanvasSpace = false,
+  hasCanvasSpace = false
 ) {
   const isRightClass = hasRightClass(className);
   const isLeftPanel = !isRightClass;
@@ -95,8 +95,8 @@ export function usePositioning(
   const historyPosition: "left" | "right" = isRightClass
     ? "right"
     : hasCanvasSpace && canvasIsOnLeft
-      ? "right"
-      : "left";
+    ? "right"
+    : "left";
 
   return { isLeftPanel, historyPosition };
 }
@@ -108,7 +108,7 @@ export function usePositioning(
  * @returns A renderable string or React element.
  */
 export function getSafeContent(
-  content: TamboThreadMessage["content"] | React.ReactNode | undefined | null,
+  content: TamboThreadMessage["content"] | React.ReactNode | undefined | null
 ): string | React.ReactElement {
   if (!content) return "";
   if (typeof content === "string") return content;
@@ -130,7 +130,7 @@ export function getSafeContent(
  * @returns True if there is content, false otherwise.
  */
 export function checkHasContent(
-  content: TamboThreadMessage["content"] | React.ReactNode | undefined | null,
+  content: TamboThreadMessage["content"] | React.ReactNode | undefined | null
 ): boolean {
   if (!content) return false;
   if (typeof content === "string") return content.trim().length > 0;
@@ -141,8 +141,37 @@ export function checkHasContent(
         item &&
         item.type === "text" &&
         typeof item.text === "string" &&
-        item.text.trim().length > 0,
+        item.text.trim().length > 0
     );
   }
   return false; // Default for unknown types
+}
+
+/**
+ * Determines if a component should be considered active based on the thread state.
+ * A component is active when it's part of the latest message and the thread is in an idle state.
+ *
+ * @param thread - The current Tambo thread
+ * @param generationStage - The current generation stage of the thread
+ * @returns Boolean indicating if the component is active and should allow interaction
+ */
+export function isActiveThreadComponent(
+  thread?: TamboThread | null,
+  generationStage?: string
+): boolean {
+  // If there's no thread or no messages, component is not active
+  if (!thread || !thread.messages || thread.messages.length === 0) {
+    return false;
+  }
+
+  // Get the last message in the thread
+  const lastMessage = thread.messages[thread.messages.length - 1];
+
+  // Component is active if:
+  // 1. The thread is not in a generating state (IDLE or COMPLETE)
+  // 2. The last message has a rendered component
+  return (
+    (generationStage === "IDLE" || generationStage === "COMPLETE") &&
+    lastMessage?.renderedComponent !== undefined
+  );
 }
