@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { useTamboThreadInput } from "@tambo-ai/react";
 import { useState } from "react";
 
@@ -65,35 +66,28 @@ export const CancellationReasonForm = () => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 max-w-xl w-full mb-8">
-      <h2 className="text-xl font-bold mb-4">We&apos;re sorry to see you go</h2>
-      <p className="mb-4">
-        Please help us understand why you&apos;re cancelling so we can improve
-        our product.
-      </p>
-      <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-        <p className="text-gray-600 text-sm mb-2">
-          What&apos;s your primary reason for cancelling?
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          {Object.keys(elaborations).map((reason) => (
-            <button
-              key={reason}
-              onClick={() => handleReasonSelect(reason)}
-              className={`p-2 border rounded text-left ${
-                selectedReason === reason
-                  ? "bg-blue-100 border-blue-500"
-                  : "border-gray-300 hover:bg-gray-100"
-              }`}
-            >
-              {reason}
-            </button>
-          ))}
-        </div>
-        <p className="text-gray-600 text-sm mt-2">
-          If you wish you can elaborate on your reason for cancellation below.
-        </p>
+    <div className="bg-background rounded-lg shadow-md p-6 w-full max-w-xs mb-8">
+      <h2 className="text-xl font-bold mb-4">Why are you leaving?</h2>
+      <div className="flex flex-col gap-2 mb-4">
+        {Object.keys(elaborations).map((reason) => (
+          <button
+            key={reason}
+            onClick={() => handleReasonSelect(reason)}
+            className={cn(
+              "py-2 px-2.5 rounded-2xl text-xs transition-colors",
+              "border border-flat",
+              selectedReason === reason
+                ? "bg-accent text-accent-foreground"
+                : "bg-background hover:bg-accent hover:text-accent-foreground"
+            )}
+          >
+            <span className="font-medium">{reason}</span>
+          </button>
+        ))}
       </div>
+      <p className="text-muted-foreground text-sm">
+        You can always just respond below.
+      </p>
     </div>
   );
 };

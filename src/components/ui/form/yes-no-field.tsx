@@ -1,11 +1,10 @@
 "use client";
 
 import { isActiveThreadComponent } from "@/lib/thread-hooks";
+import { cn } from "@/lib/utils";
 import { useTamboComponentState, useTamboThread } from "@tambo-ai/react";
 import { useEffect, useRef } from "react";
 import { z } from "zod";
-import { Label } from "../label";
-import { RadioGroupItem, RadioGroup as ShadcnRadioGroup } from "../radio-group";
 
 export const yesNoFieldSchema = z.object({
   id: z.string(),
@@ -46,43 +45,50 @@ export function YesNoField({
   // Check if this component is active in the current thread
   const isActiveComponent = isActiveThreadComponent(thread, generationStage);
 
-  const handleValueChange = (newValue: string) => {
+  const handleSelection = (value: boolean) => {
     if (isActiveComponent) {
-      const boolValue = newValue === "true";
-      setState({ value: boolValue });
+      setState({ value });
       setInputValue(`I've made my selection.`);
     }
   };
 
   return (
-    <div className={`space-y-2 ${!isActiveComponent ? "opacity-60" : ""}`}>
-      <ShadcnRadioGroup
-        value={currentValue?.toString()}
-        onValueChange={handleValueChange}
-        className="flex gap-4"
-        disabled={!isActiveComponent}
-      >
-        <div className="flex items-center space-x-2">
-          <RadioGroupItem
-            value="true"
-            id={`${id}-yes`}
-            disabled={!isActiveComponent}
-          />
-          <Label htmlFor={`${id}-yes`} className="font-normal">
-            {yesLabel}
-          </Label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <RadioGroupItem
-            value="false"
-            id={`${id}-no`}
-            disabled={!isActiveComponent}
-          />
-          <Label htmlFor={`${id}-no`} className="font-normal">
-            {noLabel}
-          </Label>
-        </div>
-      </ShadcnRadioGroup>
+    <div className={`${!isActiveComponent ? "opacity-60" : ""}`}>
+      <div className="flex gap-3">
+        <button
+          className={cn(
+            "py-2 px-3 rounded-2xl text-xs transition-colors",
+            "border border-flat",
+            "flex items-center justify-center",
+            !isActiveComponent
+              ? "bg-muted/50 text-muted-foreground"
+              : currentValue === true
+              ? "bg-green-100 text-green-800 border-green-300"
+              : "bg-background hover:bg-green-50 hover:text-green-700 hover:border-green-200"
+          )}
+          disabled={!isActiveComponent}
+          onClick={() => handleSelection(true)}
+        >
+          <span className="font-medium">{yesLabel}</span>
+        </button>
+
+        <button
+          className={cn(
+            "py-2 px-3 rounded-2xl text-xs transition-colors",
+            "border border-flat",
+            "flex items-center justify-center",
+            !isActiveComponent
+              ? "bg-muted/50 text-muted-foreground"
+              : currentValue === false
+              ? "bg-red-100 text-red-800 border-red-300"
+              : "bg-background hover:bg-red-50 hover:text-red-700 hover:border-red-200"
+          )}
+          disabled={!isActiveComponent}
+          onClick={() => handleSelection(false)}
+        >
+          <span className="font-medium">{noLabel}</span>
+        </button>
+      </div>
     </div>
   );
 }

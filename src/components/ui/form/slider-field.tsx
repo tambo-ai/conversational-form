@@ -7,10 +7,13 @@ import { Slider } from "../slider";
 export const sliderFieldSchema = z.object({
   id: z.string(),
   min: z.number().default(0),
+  minLabel: z.string().nullable().describe("Describe the min value in words."),
   max: z.number().default(100),
+  maxLabel: z.string().nullable().describe("Describe the max value in words."),
   step: z.number().default(1),
   value: z.number().optional(),
   showValue: z.boolean().default(true),
+  prefix: z.string().nullable(),
 });
 
 type SliderFieldProps = z.infer<typeof sliderFieldSchema>;
@@ -19,10 +22,13 @@ type SliderFieldState = { value: number };
 export function SliderField({
   id,
   min,
+  minLabel,
   max,
+  maxLabel,
   step,
   value = min,
   showValue,
+  prefix,
 }: SliderFieldProps) {
   const [state, setState] = useTamboComponentState<SliderFieldState>(
     `slider-field-${id}`,
@@ -52,28 +58,49 @@ export function SliderField({
 
   return (
     <div className={`space-y-2 ${!isActiveComponent ? "opacity-60" : ""}`}>
-      <div className="flex items-center justify-between">
+      <div className="relative">
         {showValue && (
-          <span className="text-sm text-muted-foreground">{currentValue}</span>
+          <div className="flex justify-center mb-4">
+            <span className="text-sm font-medium bg-background px-2 py-0.5 rounded-md shadow-sm border">
+              {prefix}
+              {currentValue}
+            </span>
+          </div>
         )}
+        <Slider
+          id={id}
+          min={min}
+          max={max}
+          step={step}
+          value={[currentValue]}
+          disabled={!isActiveComponent}
+          onValueChange={([value]) => {
+            if (isActiveComponent) {
+              setState({ value });
+              setInputValue(`I've made my selection.`);
+            }
+          }}
+        />
       </div>
-      <Slider
-        id={id}
-        min={min}
-        max={max}
-        step={step}
-        value={[currentValue]}
-        disabled={!isActiveComponent}
-        onValueChange={([value]) => {
-          if (isActiveComponent) {
-            setState({ value });
-            setInputValue(`I've made my selection.`);
-          }
-        }}
-      />
       <div className="flex justify-between">
-        <span className="text-sm text-muted-foreground">{min}</span>
-        <span className="text-sm text-muted-foreground">{max}</span>
+        <div className="flex flex-col items-start">
+          <span className="text-sm text-muted-foreground">
+            {prefix}
+            {min}
+          </span>
+          {minLabel && (
+            <span className="text-xs text-muted-foreground">{minLabel}</span>
+          )}
+        </div>
+        <div className="flex flex-col items-end">
+          <span className="text-sm text-muted-foreground">
+            {prefix}
+            {max}
+          </span>
+          {maxLabel && (
+            <span className="text-xs text-muted-foreground">{maxLabel}</span>
+          )}
+        </div>
       </div>
     </div>
   );
