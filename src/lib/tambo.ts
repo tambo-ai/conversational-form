@@ -20,7 +20,6 @@ import {
   SliderField,
   sliderFieldSchema,
 } from "@/components/ui/form/slider-field";
-import { TextField, textFieldSchema } from "@/components/ui/form/text-field";
 import {
   YesNoField,
   yesNoFieldSchema,
@@ -68,13 +67,6 @@ export const components: TamboComponent[] = [
       "A range slider input with customizable min, max, step values and optional labels. Used for numeric or scale-based inputs.",
     component: SliderField,
     propsSchema: sliderFieldSchema,
-  },
-  {
-    name: "TextField",
-    description:
-      "A single-line text input field for collecting free-form text responses or email addresses.",
-    component: TextField,
-    propsSchema: textFieldSchema,
   },
   {
     name: "YesNoField",
