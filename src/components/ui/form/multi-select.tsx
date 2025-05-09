@@ -20,15 +20,21 @@ export const multiSelectSchema = z.object({
 });
 
 type MultiSelectProps = z.infer<typeof multiSelectSchema>;
+type MultiSelectState = {
+  items: Array<{ label: string; checked: boolean }>;
+};
 
 export function MultiSelect({
   id,
   items: initialItems = [],
   title,
 }: MultiSelectProps) {
-  const [state, setState] = useTamboComponentState(`multi-select-${id}`, {
-    items: initialItems,
-  });
+  const [state, setState] = useTamboComponentState<MultiSelectState>(
+    `multi-select-${id}`,
+    {
+      items: initialItems,
+    }
+  );
 
   const { setInputValue } = useTamboThread();
 
@@ -42,10 +48,10 @@ export function MultiSelect({
       lastPropsUpdate.current = currentPropsString;
       setState({ items: initialItems });
     }
-  }, [initialItems]);
+  }, [initialItems, setState]);
 
-  // Use either state items or initial items as fallback
-  const items = state?.items || initialItems;
+  // Use nullish coalescing for safer fallback
+  const items = state?.items ?? initialItems;
 
   return (
     <div className="space-y-2">
@@ -55,7 +61,7 @@ export function MultiSelect({
           <div key={index} className="flex items-center space-x-2">
             <Checkbox
               id={`${id}-${index}`}
-              checked={item.checked}
+              checked={Boolean(item.checked)}
               onCheckedChange={(checked: boolean | "indeterminate") => {
                 if (typeof checked === "boolean") {
                   const newItems = [...items];
