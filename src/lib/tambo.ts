@@ -8,10 +8,25 @@
  * Read more about Tambo at https://tambo.co/docs
  */
 
-import { FeedbackForm } from "@/components/FeedbackForms";
+import {
+  MultiSelect,
+  multiSelectSchema,
+} from "@/components/ui/form/multi-select";
+import {
+  SingleSelect,
+  singleSelectSchema,
+} from "@/components/ui/form/single-select";
+import {
+  SliderField,
+  sliderFieldSchema,
+} from "@/components/ui/form/slider-field";
+import { TextField, textFieldSchema } from "@/components/ui/form/text-field";
+import {
+  YesNoField,
+  yesNoFieldSchema,
+} from "@/components/ui/form/yes-no-field";
 import type { TamboComponent } from "@tambo-ai/react";
 import { TamboTool } from "@tambo-ai/react";
-import { z } from "zod";
 
 /**
  * tools
@@ -34,29 +49,38 @@ export const tools: TamboTool[] = [
  */
 export const components: TamboComponent[] = [
   {
-    name: "FeedbackForm",
-    description: "A component for collecting detailed cancellation feedback with customized forms based on the reason selected. Users can provide their cancellation reason in the chat. When the user submits feedback, respond with a personalized thank you message that acknowledges their specific feedback and reason for cancellation. NEVER RENDER ANOTHER FEEDBACK FORM AFTER SUBMISSION - This component manages its own submission state internally.",
-    component: FeedbackForm,
-    propsSchema: z.object({
-      className: z.string().optional().describe("CSS class name for styling"),
-      onSubmit: z.function()
-        .args(z.string(), z.record(z.string()))
-        .returns(z.void())
-        .optional()
-        .describe("Callback function triggered when form is submitted with reason and form data"),
-      reason: z.enum([
-        "too-expensive", 
-        "missing-features", 
-        "bugs-reliability", 
-        "switching-tools", 
-        "no-longer-needed", 
-        "poor-support", 
-        "hard-to-use"
-      ]).optional().describe("The reason for cancellation, can be provided directly or extracted from chat"),
-      showNextQuestion: z.boolean().optional().describe("When set to true, shows the next question in the sequence instead of the response summary"),
-      currentQuestionIndex: z.number().optional().describe("Directly sets which question to display (0-based index)"),
-      statusMessage: z.string().optional().describe("Status message to display while submitting the response")
-    }),
+    name: "MultiSelectField",
+    description:
+      "A group of checkboxes that allows selecting multiple options from a list. Used for gathering multiple responses.",
+    component: MultiSelect,
+    propsSchema: multiSelectSchema,
   },
-  // Add more components here
+  {
+    name: "SingleSelectField",
+    description:
+      "A dropdown or radio group that allows selecting one option from a list. Used for single-choice questions.",
+    component: SingleSelect,
+    propsSchema: singleSelectSchema,
+  },
+  {
+    name: "SliderField",
+    description:
+      "A range slider input with customizable min, max, step values and optional labels. Used for numeric or scale-based inputs.",
+    component: SliderField,
+    propsSchema: sliderFieldSchema,
+  },
+  {
+    name: "TextField",
+    description:
+      "A single-line text input field for collecting free-form text responses or email addresses.",
+    component: TextField,
+    propsSchema: textFieldSchema,
+  },
+  {
+    name: "YesNoField",
+    description:
+      "A simple yes/no question field presented as radio buttons or toggle. Used for binary choice questions.",
+    component: YesNoField,
+    propsSchema: yesNoFieldSchema,
+  },
 ];
