@@ -2,15 +2,22 @@
 
 This is a complete NextJS app with Tambo to demonstrate a conversational feedback/cancellation flow with dynamic forms.
 
+Cancelling an app is about to get a whole lot more annoying ;)
+
+## Demo Video
+
+<video src="2025-05-09-conversational-form.mp4" controls width="640"></video>
+
 ## Get Started
 
-1. Run `npm create-tambo@latest my-tambo-app` for a new project
+1. Git clone the repo `git clone https://github.com/tambo-ai/conversational-form.git`
 
 2. `npm install`
 
-3. `npx tambo init`
+3. `npm run init`
 
 - or rename `example.env.local` to `.env.local` and add your tambo API key you can get for free [here](https://tambo.co/dashboard).
+- you will need your own OpenAI API key for the LLM tool call
 
 4. Run `npm run dev` and go to `localhost:3000` to use the app!
 
@@ -19,14 +26,21 @@ This is a complete NextJS app with Tambo to demonstrate a conversational feedbac
 This template showcases a conversational cancellation flow with:
 
 1. An initial cancellation reason form (`CancellationReasonForm.tsx`)
-2. Dynamic feedback forms based on the selected reason (`FeedbackForms.tsx`)
+2. Dynamic feedback forms based on the selected reason:
+
+- /ui/form/multi-select.tsx
+- /ui/form/single-select.tsx
+- /ui/form/slider-field.tsx
+- /ui/form/yes-no-field.tsx
+
 3. AI-powered conversation that responds appropriately to user feedback
 
 ### Key Components
 
-#### FeedbackForm Component
+#### Interactive Components
 
-The `FeedbackForm` component demonstrates how to create an AI-controlled form with:
+The `MultiSelectField` and `SingleSelectField` components demonstrate how to create an AI-controlled form with:
+
 - Reason-specific form fields
 - State management with `useTamboComponentState`
 - Thread interaction with `useTamboThreadInput`
@@ -35,64 +49,59 @@ The `FeedbackForm` component demonstrates how to create an AI-controlled form wi
 ```tsx
 const components: TamboComponent[] = [
   {
-    name: "FeedbackForm",
-    description: "A component for collecting detailed cancellation feedback with customized forms based on the reason selected.",
-    component: FeedbackForm,
-    propsSchema: z.object({
-      className: z.string().optional().describe("CSS class name for styling"),
-      onSubmit: z.function()
-        .args(z.string(), z.record(z.string()))
-        .returns(z.void())
-        .optional()
-        .describe("Callback function triggered when form is submitted"),
-      reason: z.enum([
-        "too-expensive", 
-        "missing-features", 
-        // ... other reasons
-      ]).optional().describe("The reason for cancellation")
-    }),
+    name: "MultiSelectField",
+    description:
+      "A group of checkboxes that allows selecting multiple options from a list. Used for gathering multiple responses.",
+    component: MultiSelect,
+    propsSchema: multiSelectSchema,
   },
-];
-```
-
-## Customizing
-
-### Change what components tambo can control
-
-You can modify the components tambo can use in `src/lib/tambo.ts`:
-
-```tsx
-export const components: TamboComponent[] = [
   {
-    name: "FeedbackForm",
-    description: "A component for collecting detailed cancellation feedback with customized forms based on the reason selected.",
-    component: FeedbackForm,
-    propsSchema: z.object({
-      // Component props schema
-    }),
+    name: "SingleSelectField",
+    description:
+      "A dropdown or radio group that allows selecting one option from a list. Used for single-choice questions.",
+    component: SingleSelect,
+    propsSchema: singleSelectSchema,
   },
-  // Add more components for Tambo to control here!
+  // continued.
 ];
 ```
+
+see [src/lib/tambo.ts](src/lib/tambo.ts) for more examples.
 
 You can find more information about the options [here](https://tambo.co/docs/concepts/registering-components)
 
 ### Add tools for tambo to use
 
+We call a simple LLM tool here:
+
 ```tsx
 export const tools: TamboTool[] = [
   {
-    name: "toolName",
-    description: "Description of what the tool does",
-    tool: myToolFunction,
-    toolSchema: z.function().args(
-      z.object({
-        // Tool arguments schema
-      })
-    ),
+    name: "CancelationAgentTool",
+    description:
+      "This tool is used to get the next action from the cancelation agent. Always call this tool with the users latest message and the state of previous component (if any).",
+    tool: async ({
+      previousComponentState,
+      message,
+    }: {
+      previousComponentState: string;
+      message: string;
+    }) => {
+      return sendMessage(previousComponentState, message);
+    },
+    toolSchema: getSummarySchema,
   },
+  // Add tools here
 ];
 ```
+
+see [src/lib/summaries.ts](src/lib/summaries.ts) for fetch/zod schema.
+
+see [src/app/api/message/route.ts](src/app/api/message/route.ts) for the api route that is called when the tool is used.
+
+> replace this with your own LLM framework of choice.
+
+see [src/lib/tambo.ts](src/lib/tambo.ts) for more examples.
 
 Find more information about tools [here.](https://tambo.co/docs/concepts/tools)
 
@@ -130,5 +139,7 @@ return (
   </div>
 );
 ```
+
+see [src/app/page.tsx](src/app/page.tsx) for more examples.
 
 For more detailed documentation, visit [Tambo's official docs](https://tambo.co/docs).

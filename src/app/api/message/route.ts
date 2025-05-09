@@ -1,3 +1,8 @@
+// this is an example of how to call an LLM tool from a Tambo component.
+// it's storing the summary in a file in the storage folder.
+// not for production use!
+// just to demonstrate the concept.
+
 import { storage } from "@/lib/storage";
 import type { ApiResponse } from "@/lib/summaries";
 import { NextResponse } from "next/server";
@@ -69,19 +74,12 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    console.log("previousComponentState", previousComponentState);
 
     // Get previous summary from storage
     const previousSummary = storage.getSummary();
 
     // Log the request data being sent to OpenAI
     const userResponse = `selections: ${previousComponentState} message: ${message}`;
-
-    console.log("Sending to OpenAI:", {
-      previousSummary,
-      userResponse,
-      model: "gpt-4o",
-    });
 
     // Call OpenAI API
     const completion = await openai.chat.completions.create({
@@ -102,21 +100,14 @@ export async function POST(request: Request) {
     const aiResponse = completion.choices[0]?.message?.content || "{}";
     const parsedResponse = JSON.parse(aiResponse);
 
-    // Log the AI response from OpenAI
-    console.log("OpenAI API response:", aiResponse);
-
     // Save the new summary
     storage.saveSummary(parsedResponse.newSummary);
 
     // Format response
     const response: ApiResponse = parsedResponse;
 
-    // Log the formatted response being sent to the client
-    console.log("Sending response:", response);
-
     return NextResponse.json(response);
-  } catch (error) {
-    console.error("Error processing message:", error);
+  } catch {
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
