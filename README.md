@@ -6,7 +6,7 @@ Cancelling an app is about to get a whole lot more annoying ;)
 
 ## Demo Video
 
-<video src="2025-05-09-conversational-form.mp4" controls width="640"></video>
+![Demo Video](2025-05-09-conversational-form.mp4)
 
 ## Get Started
 
