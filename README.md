@@ -4,9 +4,9 @@ This is a complete NextJS app with Tambo to demonstrate a conversational feedbac
 
 Cancelling an app is about to get a whole lot more annoying ;)
 
-## Demo Video
+## Demo
 
-![Demo Video](2025-05-09-conversational-form.mp4)
+[![Tambo Conversational Form Demo](https://img.youtube.com/vi/B-GVe7RIipE/0.jpg)](https://youtu.be/B-GVe7RIipE)
 
 ## Get Started
 
