@@ -73,14 +73,9 @@ export interface ThreadContentProps
  */
 const ThreadContent = React.forwardRef<HTMLDivElement, ThreadContentProps>(
   ({ children, className, variant, ...props }, ref) => {
-    const { thread, generationStage } = useTambo();
-    const activeGenerationStages = [
-      "CHOOSING_COMPONENT",
-      "FETCHING_CONTEXT",
-      "HYDRATING_COMPONENT",
-      "STREAMING_RESPONSE",
-    ];
-    const isGenerating = activeGenerationStages.includes(generationStage ?? "");
+    const { thread, generationStage, isIdle } = useTambo();
+
+    const isGenerating = !isIdle;
 
     const contextValue = React.useMemo(
       () => ({
