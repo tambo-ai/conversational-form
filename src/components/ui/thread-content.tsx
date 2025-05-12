@@ -149,13 +149,6 @@ const ThreadContentMessages = React.forwardRef<
                 message.createdAt ?? Date.now()
               }-${message.content?.toString().substring(0, 10)}`
             }
-            className={cn(
-              !isGenerating && "animate-in fade-in-0 slide-in-from-bottom-2",
-              "duration-200 ease-out"
-            )}
-            style={
-              !isGenerating ? { animationDelay: `${index * 40}ms` } : undefined
-            }
             data-slot="thread-content-item"
           >
             <Message
