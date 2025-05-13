@@ -40,7 +40,7 @@ export const tools: TamboTool[] = [
   {
     name: "CancelationAgentTool",
     description:
-      "This tool is used to get the next action from the cancelation agent. Always call this tool with the users latest message and the state of previous component (if any).",
+      "This tool is used to get the next action from the cancelation agent.",
     tool: async ({
       previousComponentState,
       message,
