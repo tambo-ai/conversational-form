@@ -1,13 +1,13 @@
 "use client";
 
 import { createMarkdownComponents } from "@/components/ui/markdownComponents";
+import { checkHasContent, getSafeContent } from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
 import type { TamboThreadMessage } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { ExternalLink, Check, Loader2 } from "lucide-react";
+import { Check, ExternalLink, Loader2, X } from "lucide-react";
 import * as React from "react";
 import ReactMarkdown from "react-markdown";
-import { getSafeContent, checkHasContent } from "@/lib/thread-hooks";
 
 /**
  * CSS variants for the message container
@@ -103,21 +103,12 @@ export interface MessageProps
 const Message = React.forwardRef<HTMLDivElement, MessageProps>(
   (
     { children, className, role, variant, isLoading, message, ...props },
-    ref,
+    ref
   ) => {
     const contextValue = React.useMemo(
       () => ({ role, variant, isLoading, message }),
-      [role, variant, isLoading, message],
+      [role, variant, isLoading, message]
     );
-
-    // Get safe content the same way the component does for rendering
-    const safeContent = getSafeContent(message.content);
-    const contentString = typeof safeContent === 'string' ? safeContent : '';
-    
-    // Skip rendering if it's a user message containing feedback submission
-    if (role === 'user' && contentString.includes('Feedback submission:')) {
-      return null;
-    }
 
     return (
       <MessageContext.Provider value={contextValue}>
@@ -132,7 +123,7 @@ const Message = React.forwardRef<HTMLDivElement, MessageProps>(
         </div>
       </MessageContext.Provider>
     );
-  },
+  }
 );
 Message.displayName = "Message";
 
@@ -173,7 +164,7 @@ LoadingIndicator.displayName = "LoadingIndicator";
  */
 function getToolStatusMessage(
   message: TamboThreadMessage,
-  isLoading: boolean | undefined,
+  isLoading: boolean | undefined
 ) {
   const isToolCall = message.actionType === "tool_call";
   if (!isToolCall) return null;
@@ -206,29 +197,30 @@ export interface MessageContentProps
 const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
   (
     { className, children, content: contentProp, markdown = true, ...props },
-    ref,
+    ref
   ) => {
     const { message, isLoading } = useMessageContext();
     const contentToRender = children ?? contentProp ?? message.content;
 
     const safeContent = React.useMemo(
       () => getSafeContent(contentToRender as TamboThreadMessage["content"]),
-      [contentToRender],
+      [contentToRender]
     );
     const hasContent = React.useMemo(
       () => checkHasContent(contentToRender as TamboThreadMessage["content"]),
-      [contentToRender],
+      [contentToRender]
     );
 
     const showLoading = isLoading && !hasContent;
     const toolStatusMessage = getToolStatusMessage(message, isLoading);
+    const hasToolError = message.actionType === "tool_call" && message.error;
 
     return (
       <div
         ref={ref}
         className={cn(
           "relative inline-block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&_p]:my-1 [&_ul]:-my-5 [&_ol]:-my-5",
-          className,
+          className
         )}
         data-slot="message-content"
         {...props}
@@ -262,7 +254,9 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
         )}
         {toolStatusMessage && (
           <div className="flex items-center gap-2 text-xs opacity-50 mt-2">
-            {isLoading ? (
+            {hasToolError ? (
+              <X className="w-3 h-3 text-bold text-red-500" />
+            ) : isLoading ? (
               <Loader2 className="w-3 h-3 text-muted-foreground text-bold animate-spin" />
             ) : (
               <Check className="w-3 h-3 text-bold text-green-500" />
@@ -272,7 +266,7 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
         )}
       </div>
     );
-  },
+  }
 );
 MessageContent.displayName = "MessageContent";
 
@@ -338,7 +332,7 @@ const MessageRenderedComponentArea = React.forwardRef<
                         messageId: message.id,
                         component: message.renderedComponent,
                       },
-                    }),
+                    })
                   );
                 }
               }}
@@ -359,9 +353,9 @@ MessageRenderedComponentArea.displayName = "Message.RenderedComponentArea";
 
 // --- Exports ---
 export {
-  messageVariants,
+  LoadingIndicator,
   Message,
   MessageContent,
   MessageRenderedComponentArea,
-  LoadingIndicator,
+  messageVariants,
 };
