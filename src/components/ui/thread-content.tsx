@@ -42,7 +42,7 @@ const useThreadContentContext = () => {
   const context = React.useContext(ThreadContentContext);
   if (!context) {
     throw new Error(
-      "ThreadContent sub-components must be used within a ThreadContent"
+      "ThreadContent sub-components must be used within a ThreadContent",
     );
   }
   return context;
@@ -74,7 +74,6 @@ export interface ThreadContentProps
 const ThreadContent = React.forwardRef<HTMLDivElement, ThreadContentProps>(
   ({ children, className, variant, ...props }, ref) => {
     const { thread, generationStage, isIdle } = useTambo();
-
     const isGenerating = !isIdle;
 
     const contextValue = React.useMemo(
@@ -84,14 +83,14 @@ const ThreadContent = React.forwardRef<HTMLDivElement, ThreadContentProps>(
         generationStage,
         variant,
       }),
-      [thread?.messages, isGenerating, generationStage, variant]
+      [thread?.messages, isGenerating, generationStage, variant],
     );
 
     return (
       <ThreadContentContext.Provider value={contextValue}>
         <div
           ref={ref}
-          className={cn(className)}
+          className={cn("w-full", className)}
           data-slot="thread-content-container"
           {...props}
         >
@@ -99,7 +98,7 @@ const ThreadContent = React.forwardRef<HTMLDivElement, ThreadContentProps>(
         </div>
       </ThreadContentContext.Provider>
     );
-  }
+  },
 );
 ThreadContent.displayName = "ThreadContent";
 
@@ -129,13 +128,11 @@ const ThreadContentMessages = React.forwardRef<
   return (
     <div
       ref={ref}
-      className={cn(className)}
+      className={cn("w-full", className)}
       data-slot="thread-content-messages"
       {...props}
     >
       {messages.map((message, index) => {
-        const showLoading = isGenerating && index === messages.length - 1;
-
         return (
           <div
             key={
@@ -150,14 +147,20 @@ const ThreadContentMessages = React.forwardRef<
               role={message.role === "assistant" ? "assistant" : "user"}
               message={message}
               variant={variant}
-              isLoading={showLoading}
-              className={
+              isLoading={isGenerating && index === messages.length - 1}
+              className={cn(
+                "flex w-full",
                 message.role === "assistant"
-                  ? "flex justify-start"
-                  : "flex justify-end"
-              }
+                  ? "justify-start"
+                  : "justify-end",
+              )}
             >
-              <div className="flex flex-col">
+              <div
+                className={cn(
+                  "flex flex-col",
+                  message.role === "assistant" ? "w-full" : "max-w-3xl",
+                )}
+              >
                 <MessageContent
                   className={
                     message.role === "assistant"
@@ -165,10 +168,7 @@ const ThreadContentMessages = React.forwardRef<
                       : "text-primary bg-container hover:bg-backdrop font-sans"
                   }
                 />
-                {/* Rendered component area determines if the message is a canvas message */}
-                <div className="pl-2">
-                  <MessageRenderedComponentArea />
-                </div>
+                <MessageRenderedComponentArea className="w-full" />
               </div>
             </Message>
           </div>
