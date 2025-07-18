@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
-import type { TamboThreadMessage } from "@tambo-ai/react";
+import type { TamboThread, TamboThreadMessage } from "@tambo-ai/react";
 
 /**
  * Custom hook to merge multiple refs into one callback ref
@@ -145,4 +145,33 @@ export function checkHasContent(
     );
   }
   return false; // Default for unknown types
+}
+
+/**
+ * Determines if a component should be considered active based on the thread state.
+ * A component is active when it's part of the latest message and the thread is in an idle state.
+ *
+ * @param thread - The current Tambo thread
+ * @param generationStage - The current generation stage of the thread
+ * @returns Boolean indicating if the component is active and should allow interaction
+ */
+export function isActiveThreadComponent(
+  thread?: TamboThread | null,
+  generationStage?: string
+): boolean {
+  // If there's no thread or no messages, component is not active
+  if (!thread || !thread.messages || thread.messages.length === 0) {
+    return false;
+  }
+
+  // Get the last message in the thread
+  const lastMessage = thread.messages[thread.messages.length - 1];
+
+  // Component is active if:
+  // 1. The thread is not in a generating state (IDLE or COMPLETE)
+  // 2. The last message has a rendered component
+  return (
+    (generationStage === "IDLE" || generationStage === "COMPLETE") &&
+    lastMessage?.renderedComponent !== undefined
+  );
 }
