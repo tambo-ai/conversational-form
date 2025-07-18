@@ -4,8 +4,9 @@ import {
   Message,
   MessageContent,
   MessageRenderedComponentArea,
+  ToolcallInfo,
   type messageVariants,
-} from "@/components/ui/message";
+} from "@/components/tambo/message";
 import { cn } from "@/lib/utils";
 import { type TamboThreadMessage, useTambo } from "@tambo-ai/react";
 import { type VariantProps } from "class-variance-authority";
@@ -128,7 +129,7 @@ const ThreadContentMessages = React.forwardRef<
   return (
     <div
       ref={ref}
-      className={cn("flex flex-col gap-4", className)}
+      className={cn("flex flex-col gap-2", className)}
       data-slot="thread-content-messages"
       {...props}
     >
@@ -150,9 +151,7 @@ const ThreadContentMessages = React.forwardRef<
               isLoading={isGenerating && index === messages.length - 1}
               className={cn(
                 "flex w-full",
-                message.role === "assistant"
-                  ? "justify-start"
-                  : "justify-end",
+                message.role === "assistant" ? "justify-start" : "justify-end",
               )}
             >
               <div
@@ -168,6 +167,7 @@ const ThreadContentMessages = React.forwardRef<
                       : "text-primary bg-container hover:bg-backdrop font-sans"
                   }
                 />
+                <ToolcallInfo />
                 <MessageRenderedComponentArea className="w-full" />
               </div>
             </Message>
