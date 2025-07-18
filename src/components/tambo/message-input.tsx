@@ -1,9 +1,9 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useTamboThreadInput } from "@tambo-ai/react";
+import { useTamboThread, useTamboThreadInput } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { ArrowUp } from "lucide-react";
+import { ArrowUp, Square } from "lucide-react";
 import * as React from "react";
 
 /**
@@ -18,10 +18,20 @@ const messageInputVariants = cva("w-full", {
     variant: {
       default: "",
       solid: [
-        "shadow shadow-zinc-900/10 dark:shadow-zinc-900/20",
-        "[&_input]:bg-muted [&_input]:dark:bg-muted",
+        "[&>div]:bg-background",
+        "[&>div]:border-0",
+        "[&>div]:shadow-xl [&>div]:shadow-black/5 [&>div]:dark:shadow-black/20",
+        "[&>div]:ring-1 [&>div]:ring-black/5 [&>div]:dark:ring-white/10",
+        "[&_textarea]:bg-transparent",
+        "[&_textarea]:rounded-lg",
       ].join(" "),
-      bordered: ["[&_input]:border-2", "[&_input]:border-border"].join(" "),
+      bordered: [
+        "[&>div]:bg-transparent",
+        "[&>div]:border-2 [&>div]:border-gray-300 [&>div]:dark:border-zinc-600",
+        "[&>div]:shadow-none",
+        "[&_textarea]:bg-transparent",
+        "[&_textarea]:border-0",
+      ].join(" "),
     },
   },
   defaultVariants: {
@@ -76,7 +86,7 @@ const useMessageInputContext = () => {
   const context = React.useContext(MessageInputContext);
   if (!context) {
     throw new Error(
-      "MessageInput sub-components must be used within a MessageInput"
+      "MessageInput sub-components must be used within a MessageInput",
     );
   }
   return context;
@@ -118,17 +128,8 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
     const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
     React.useEffect(() => {
-      if (value && value.includes("Feedback submission:")) {
-        setDisplayValue("");
-      } else {
-        setDisplayValue(value);
-      }
-
-      if (
-        value &&
-        textareaRef.current &&
-        !value.includes("Feedback submission:")
-      ) {
+      setDisplayValue(value);
+      if (value && textareaRef.current) {
         textareaRef.current.focus();
       }
     }, [value]);
@@ -138,48 +139,36 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
         e.preventDefault();
         if (!value.trim()) return;
 
-        const isFeedbackSubmission = value.includes("Feedback submission:");
-
         setSubmitError(null);
         setDisplayValue("");
         try {
           await submit({
             contextKey,
             streamResponse: true,
-            forceToolChoice: "CancelationAgentTool",
           });
           setValue("");
           setTimeout(() => {
-            if (!isFeedbackSubmission) {
-              textareaRef.current?.focus();
-            }
+            textareaRef.current?.focus();
           }, 0);
         } catch (error) {
           console.error("Failed to submit message:", error);
-          if (!isFeedbackSubmission) {
-            setDisplayValue(value);
-          }
+          setDisplayValue(value);
           setSubmitError(
             error instanceof Error
               ? error.message
-              : "Failed to send message. Please try again."
+              : "Failed to send message. Please try again.",
           );
         }
       },
-      [value, submit, contextKey, setValue, setDisplayValue, setSubmitError]
+      [value, submit, contextKey, setValue, setDisplayValue, setSubmitError],
     );
 
     const contextValue = React.useMemo(
       () => ({
         value: displayValue,
         setValue: (newValue: string) => {
-          if (newValue.includes("Feedback submission:")) {
-            setValue(newValue);
-            setDisplayValue("");
-          } else {
-            setValue(newValue);
-            setDisplayValue(newValue);
-          }
+          setValue(newValue);
+          setDisplayValue(newValue);
         },
         submit,
         handleSubmit,
@@ -199,7 +188,7 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
         error,
         contextKey,
         submitError,
-      ]
+      ],
     );
     return (
       <MessageInputContext.Provider
@@ -218,7 +207,7 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
         </form>
       </MessageInputContext.Provider>
     );
-  }
+  },
 );
 MessageInput.displayName = "MessageInput";
 
@@ -248,8 +237,10 @@ const MessageInputTextarea = ({
   placeholder = "What do you want to do?",
   ...props
 }: MessageInputTextareaProps) => {
-  const { value, setValue, isPending, textareaRef, handleSubmit } =
+  const { value, setValue, textareaRef, handleSubmit } =
     useMessageInputContext();
+  const { isIdle } = useTamboThread();
+  const isPending = !isIdle;
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setValue(e.target.value);
@@ -272,7 +263,7 @@ const MessageInputTextarea = ({
       onKeyDown={handleKeyDown}
       className={cn(
         "flex-1 p-3 rounded-t-lg bg-background text-foreground resize-none text-sm min-h-[82px] max-h-[40vh] focus:outline-none placeholder:text-muted-foreground/50",
-        className
+        className,
       )}
       disabled={isPending}
       placeholder={placeholder}
@@ -313,23 +304,32 @@ const MessageInputSubmitButton = React.forwardRef<
   MessageInputSubmitButtonProps
 >(({ className, children, ...props }, ref) => {
   const { isPending } = useMessageInputContext();
+  const { cancel } = useTamboThread();
+
+  const handleCancel = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    cancel();
+  };
+
+  const buttonClasses = cn(
+    "w-10 h-10 bg-black/80 text-white rounded-lg hover:bg-black/70 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+    className,
+  );
 
   return (
     <button
       ref={ref}
-      type="submit"
-      disabled={isPending}
-      className={cn(
-        "w-10 h-10 bg-black/80 text-white rounded-lg hover:bg-black/70 disabled:opacity-50 flex items-center justify-center cursor-pointer",
-        className
-      )}
-      aria-label="Send message"
-      data-slot="message-input-submit"
+      type={isPending ? "button" : "submit"}
+      onClick={isPending ? handleCancel : undefined}
+      className={buttonClasses}
+      aria-label={isPending ? "Cancel message" : "Send message"}
+      data-slot={isPending ? "message-input-cancel" : "message-input-submit"}
       {...props}
     >
       {children ??
         (isPending ? (
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+          <Square className="w-4 h-4" fill="currentColor" />
         ) : (
           <ArrowUp className="w-5 h-5" />
         ))}
