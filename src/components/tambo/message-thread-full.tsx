@@ -4,6 +4,7 @@ import {
   MessageInput,
   MessageInputTextarea,
   MessageInputToolbar,
+  MessageInputMcpConfigButton,
   MessageInputSubmitButton,
   MessageInputError,
 } from "@/components/tambo/message-input";
@@ -112,6 +113,7 @@ export const MessageThreadFull = React.forwardRef<
           <MessageInput contextKey={contextKey}>
             <MessageInputTextarea />
             <MessageInputToolbar>
+              <MessageInputMcpConfigButton />
               <MessageInputSubmitButton />
             </MessageInputToolbar>
             <MessageInputError />
